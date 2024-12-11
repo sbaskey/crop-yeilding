@@ -1,0 +1,10 @@
+
+scikit-learn==1.5.2
+pandas
+Pillow
+opencv-python-headless
+streamlit
+streamlit-option-menu
+tensorflow
+split-folders
+category-encoders
