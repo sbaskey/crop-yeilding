@@ -82,8 +82,7 @@ def main():
 
     # Dropdown: Crop
     if district != "--Select--" and block != "--Select--" and not df.empty:
-        filtered_crops = df[(df["District"].str.upper() == district.upper()) & 
-                            (df["Block"].str.upper() == block.upper())]["Crop"].unique()
+        filtered_crops = df["Crop"].unique()
         crop_options = ["--Select--"] + list(filtered_crops)
     else:
         crop_options = ["--Select a block--"]
@@ -185,16 +184,12 @@ def main():
             ].index # Get the first match only
             # st.write(matched_row)
             if matched_row.empty:
-                st.warning("No matching rows found in the main dataset.")
-            else:
                 st.success(" ")
+                if(matched_row.empty):
+                    matched_index=0
+                else:
+                    matched_index = int(matched_row[0])
 
-              
-
-                # Get the index of the matched row
-                matched_index = int(matched_row[0])
-                # st.write(matched_index)
-                
                 # Load the secondary dataset
                 try:
                     other_df = pd.read_csv(OTHER_CSV_FILE_PATH)
@@ -220,39 +215,23 @@ def main():
                      # Drop the original column and concatenate the encoded columns
                     user_df = user_df.drop('Variety', axis=1)
                     user_df = pd.concat([user_df, encoded_variety], axis=1)
-                    # st.write(other_df)
-                    # st.write(other_df.columns)
-                    # st.write(user_df)
-                    # combined_df=pd.concat([other_df,user_df],axis=1)
-                    # st.write(combined_df)
-                   
-                    # st.write('testing combined')
                     combined_df = pd.concat([user_df.reset_index(drop=True), other_df.reset_index(drop=True)], axis=1)
                     combined_df=combined_df.rename(columns={'Registered Area': 'Certified Area'})
-
-                    # st.write(combined_df)
-                    # st.write('shape of combined')
-                    # st.write(combined_df.shape)
-
                     with open('training_columns.json', 'r') as file:
                         training_columns = json.load(file)
+                        
                     for col in combined_df:
                         if col not in training_columns:
                             st.warning(col)
-                    # st.write('')
+
+                    count_training_column=0
                     for col in training_columns:
+                        count_training_column+=1
                         if col not in combined_df:
                             combined_df[col]=0
-                    # st.write(combined_df.columns)
-                    # st.write(combined_df)
-                    # st.write(len(training_columns))
+                            
+                    print('training columns',count_training_column,len(combined_df.columns))
                     model_path = 'new_model.h5'
-
-                    # doing scaling of features
-                    # print(len(num_columns))
-                    # soil_data=soil_data.extend(['Sowed Quantity','Certified Area'])
-                    # num_columns=soil_data
-                    # st.write(soil_data)
                     num_columns= ['Copper - Sufficient', 'Copper - Deficient', 'Boron - Sufficient',
        'Boron - Deficient',
        'Fe - Sufficient', 'Fe - Deficient', 'Zn - Sufficient',
@@ -290,10 +269,6 @@ def main():
                     prediction = loaded_model.predict(processed_df)
                     st.write('Predicted Yield')
                     st.write(prediction)
-
-
-
-
 
 
                 except Exception as e:
